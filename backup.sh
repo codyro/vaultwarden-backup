@@ -53,7 +53,15 @@ rm -rf "${BACKUP_DIR_PATH}"
 md5sum "${BACKUP_FILE_PATH}"
 sha1sum "${BACKUP_FILE_PATH}"
 
-if [[ -n ${GPG_PASSPHRASE} ]]; then
+if [[ -n "${GPG_FINGERPRINT}" ]]; then
+    ${GPG} --cipher-algo "${GPG_CIPHER_ALGO}" --batch --encrypt --recipient "${GPG_FINGERPRINT}" "${BACKUP_FILE_PATH}" 
+    BACKUP_FILE_NAME+=".gpg"
+    BACKUP_FILE_PATH+=".gpg"
+    md5sum "${BACKUP_FILE_PATH}"    
+    sha256sum "${BACKUP_FILE_PATH}"    
+fi
+
+if [[ -n "${GPG_PASSPHRASE}" ]]; then
     # https://gnupg.org/documentation/manuals/gnupg/GPG-Esoteric-Options.html
     # Note: Add `--pinentry-mode loopback` if using GnuPG 2.1.
     printf '%s' "${GPG_PASSPHRASE}" |
@@ -61,14 +69,14 @@ if [[ -n ${GPG_PASSPHRASE} ]]; then
     BACKUP_FILE_NAME+=".gpg"
     BACKUP_FILE_PATH+=".gpg"
     md5sum "${BACKUP_FILE_PATH}"
-    sha1sum "${BACKUP_FILE_PATH}"
-elif [[ -n ${AGE_PASSPHRASE} ]]; then
+    sha256sum "${BACKUP_FILE_PATH}"
+elif [[ -n "${AGE_PASSPHRASE}" ]]; then
     export AGE_PASSPHRASE
     ${AGE} -p -o "${BACKUP_FILE_PATH}.age" "${BACKUP_FILE_PATH}"
     BACKUP_FILE_NAME+=".age"
     BACKUP_FILE_PATH+=".age"
     md5sum "${BACKUP_FILE_PATH}"
-    sha1sum "${BACKUP_FILE_PATH}"
+    sha256sum "${BACKUP_FILE_PATH}"
 fi
 
 # Attempt uploading to all remotes, even if some fail.
